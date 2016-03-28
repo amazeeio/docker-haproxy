@@ -13,7 +13,7 @@ frontend http
 	mode tcp
 	bind :80
 {{range $host, $containers := groupByMulti $ "Env.VIRTUAL_HOST" ","}}
-	use_backend http_{{$host}} if { hdr(host) -i {{$host}} }
+	use_backend http_{{$host}} if { hdr_end(host) -i {{$host}} }
 {{end}}
 
 frontend https
