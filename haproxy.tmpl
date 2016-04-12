@@ -1,3 +1,20 @@
+{{ define "upstream" }}
+        {{ if .Address }}
+                {{/* If we got the containers from swarm and this container's port is published to host, use host IP:P$ */}}
+                {{ if and .Container.Node.ID .Address.HostPort }}
+                        # {{ .Container.Node.Name }}/{{ .Container.Name }}
+                        server {{ .Container.Node.Address.IP }}:{{ .Address.HostPort }} {{ .Container.Node.Address.IP }}:{{ .Address.HostPort }} check
+                {{/* If there is no swarm node or the port is not published on host, use container's IP:PORT */}}
+                {{ else if .Address.IP }}
+                        # {{ .Container.Name }}
+                        server {{ .Address.IP }}:{{ .Address.Port }} {{ .Address.IP }}:{{ .Address.Port }} check;
+                {{ else }}
+                        # {{ .Container.Name }}
+                        server {{ .Container.Name }}:{{ .Address.Port }} {{ .Container.Name }}:{{ .Address.Port }} check
+                {{ end }}
+        {{ end }}
+{{ end }}
+
 global
 	daemon
 	maxconn 1024
@@ -10,7 +27,7 @@ defaults
 	timeout server 60s
 
 frontend http
-	mode tcp
+	mode http
 	bind :80
 {{range $host, $containers := groupByMulti $ "Env.VIRTUAL_HOST" ","}}
 	use_backend http_{{$host}} if { hdr_end(host) -i {{$host}} }
@@ -28,20 +45,15 @@ frontend https
 
 {{range $host, $containers := groupByMulti $ "Env.VIRTUAL_HOST" ","}}
 backend http_{{$host}}
-	{{range $index, $value := $containers}}
-		{{$addrLen := len $value.Addresses}}
+        mode http
+	{{range $container := $containers}}
+		{{$addrLen := len $container.Addresses}}
 		{{if eq $addrLen 1}}
-			{{with $address := index $value.Addresses 0}}
-				{{if eq $address.Port "80"}}
-	server {{$address.IP}}:{{$address.Port}} {{$address.IP}}:{{$address.Port}} check
-				{{end}}
-			{{end}}
+			{{ $address := index $container.Addresses 0 }}
+			{{ template "upstream" (dict "Container" $container "Address" $address) }}
 		{{else}}
-			{{range $i, $address := $value.Addresses}}
-				{{if eq $address.Port "80"}}
-	server {{$address.IP}}:{{$address.Port}} {{$address.IP}}:{{$address.Port}} check
-				{{end}}
-			{{end}}
+			{{ $address := where $container.Addresses "Port" "80" | first }}
+			{{ template "upstream" (dict "Container" $container "Address" $address) }}
 		{{end}}
 	{{end}}
 
@@ -69,20 +81,14 @@ backend https_{{$host}}
 
 	option ssl-hello-chk
 
-	{{range $index, $value := $containers}}
-		{{$addrLen := len $value.Addresses}}
+	{{range $container := $containers}}
+		{{$addrLen := len $container.Addresses}}
 		{{if eq $addrLen 1}}
-			{{with $address := index $value.Addresses 0}}
-				{{if eq $address.Port "443"}}
-	server {{$address.IP}}:{{$address.Port}} {{$address.IP}}:{{$address.Port}} check
-				{{end}}
-			{{end}}
+			{{ $address := index $container.Addresses 0 }}
+			{{ template "upstream" (dict "Container" $container "Address" $address) }}
 		{{else}}
-			{{range $i, $address := $value.Addresses}}
-				{{if eq $address.Port "443"}}
-	server {{$address.IP}}:{{$address.Port}} {{$address.IP}}:{{$address.Port}} check
-				{{end}}
-			{{end}}
+			{{ $address := where $container.Addresses "Port" "443" | first }}
+			{{ template "upstream" (dict "Container" $container "Address" $address) }}
 		{{end}}
 	{{end}}
 {{end}}
