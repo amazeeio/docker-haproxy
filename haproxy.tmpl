@@ -7,7 +7,7 @@
                 {{/* If there is no swarm node or the port is not published on host, use container's IP:PORT */}}
                 {{ else if .Address.IP }}
                         # {{ .Container.Name }}
-                        server {{ .Address.IP }}:{{ .Address.Port }} {{ .Address.IP }}:{{ .Address.Port }} check;
+                        server {{ .Address.IP }}:{{ .Address.Port }} {{ .Address.IP }}:{{ .Address.Port }} check
                 {{ else }}
                         # {{ .Container.Name }}
                         server {{ .Container.Name }}:{{ .Address.Port }} {{ .Container.Name }}:{{ .Address.Port }} check
@@ -25,6 +25,11 @@ defaults
 	timeout client 60s
 	timeout connect 60s
 	timeout server 60s
+
+    stats enable
+    stats refresh 30s
+    stats show-node
+    stats uri  /stats
 
 frontend http
 	mode http
