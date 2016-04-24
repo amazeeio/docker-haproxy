@@ -25,16 +25,20 @@ defaults
 	timeout client 60s
 	timeout connect 60s
 	timeout server 60s
+	option http-server-close
+	option forwardfor
 
-    stats enable
-    stats refresh 30s
-    stats show-node
-    stats uri  /stats
+	stats enable
+	stats refresh 30s
+	stats show-node
+	stats uri  /stats
 
 frontend http
 	mode http
 	bind :80
-{{range $host, $containers := groupByMulti $ "Env.VIRTUAL_HOST" ","}}
+{{/* We are only interested in containers that have the environment variable AMAZEEIO set */}}
+{{range $key, $container := whereExist $ "Env.AMAZEEIO" }}
+	{{$host := $container.Name }}
 	use_backend http_{{$host}} if { hdr_end(host) -i {{$host}} }
 {{end}}
 
@@ -44,14 +48,15 @@ frontend https
 	option socket-stats
 	tcp-request inspect-delay 5s
 	tcp-request content accept if { req_ssl_hello_type 1 }
-{{range $host, $containers := groupByMulti $ "Env.VIRTUAL_HOST" ","}}
+{{range $key, $container := whereExist $ "Env.AMAZEEIO" }}
+        {{$host := $container.Name }}
 	use_backend https_{{$host}} if { req_ssl_sni -i {{$host}} }
 {{end}}
 
-{{range $host, $containers := groupByMulti $ "Env.VIRTUAL_HOST" ","}}
+{{range $key, $container := whereExist $ "Env.AMAZEEIO" }}
+{{$host := $container.Name }}
 backend http_{{$host}}
-        mode http
-	{{range $container := $containers}}
+		mode http
 		{{$addrLen := len $container.Addresses}}
 		{{if eq $addrLen 1}}
 			{{ $address := index $container.Addresses 0 }}
@@ -60,7 +65,6 @@ backend http_{{$host}}
 			{{ $address := where $container.Addresses "Port" "80" | first }}
 			{{ template "upstream" (dict "Container" $container "Address" $address) }}
 		{{end}}
-	{{end}}
 
 backend https_{{$host}}
 	#balance leastconn
@@ -86,15 +90,13 @@ backend https_{{$host}}
 
 	option ssl-hello-chk
 
-	{{range $container := $containers}}
-		{{$addrLen := len $container.Addresses}}
-		{{if eq $addrLen 1}}
-			{{ $address := index $container.Addresses 0 }}
-			{{ template "upstream" (dict "Container" $container "Address" $address) }}
-		{{else}}
-			{{ $address := where $container.Addresses "Port" "443" | first }}
-			{{ template "upstream" (dict "Container" $container "Address" $address) }}
-		{{end}}
+	{{$addrLen := len $container.Addresses}}
+	{{if eq $addrLen 1}}
+		{{ $address := index $container.Addresses 0 }}
+		{{ template "upstream" (dict "Container" $container "Address" $address) }}
+	{{else}}
+		{{ $address := where $container.Addresses "Port" "443" | first }}
+		{{ template "upstream" (dict "Container" $container "Address" $address) }}
 	{{end}}
 {{end}}
 
