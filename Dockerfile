@@ -1,19 +1,13 @@
-FROM ubuntu:16.04
+FROM haproxy:1.7-alpine
 
-ENV BUILD_PACKAGES software-properties-common wget nano
-ENV RUNTIME_PACKAGES haproxy liblua5.3-0 libssl1.0.0
+RUN apk update && apk --no-cache add bash
+
 ENV DOCKER_GEN_VERSION 0.7.0
-COPY 01_nodoc /etc/dpkg/dpkg.cfg.d/01_nodoc
-RUN apt-get update && \
-    apt-get -y install $BUILD_PACKAGES && \
-    add-apt-repository ppa:vbernat/haproxy-1.6 && \
-    apt-get update && \
-    apt-get -y install $RUNTIME_PACKAGES && \
-    wget https://github.com/jwilder/docker-gen/releases/download/$DOCKER_GEN_VERSION/docker-gen-linux-amd64-$DOCKER_GEN_VERSION.tar.gz && \
-    tar -C /usr/local/bin -xvzf docker-gen-linux-amd64-$DOCKER_GEN_VERSION.tar.gz && \
-    rm /docker-gen-linux-amd64-$DOCKER_GEN_VERSION.tar.gz && \
-    apt-get remove --purge -y $BUILD_PACKAGES $(apt-mark showauto) && \
-    rm -rf /var/lib/apt/lists/*
+
+ADD https://github.com/jwilder/docker-gen/releases/download/$DOCKER_GEN_VERSION/docker-gen-linux-amd64-$DOCKER_GEN_VERSION.tar.gz /tmp/docker-gen.tar.gz
+
+RUN tar -C /usr/local/bin -xvzf /tmp/docker-gen.tar.gz && \
+    chmod +x /usr/local/bin/docker-gen
 
 COPY . /app/
 WORKDIR /app/
