@@ -1,0 +1,10 @@
+version: '3'
+services:
+  haproxy:
+    build: .
+    volumes:
+      - .:/app/
+      - /var/run/docker.sock:/tmp/docker.sock
+    ports:
+      - 80:80
+    network_mode: bridge
