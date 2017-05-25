@@ -6,13 +6,21 @@ This Images is part of the [amazee.io local docker development environment](http
 
 When used together with [cachalot](https://docs.amazee.io/local_docker_development/os_x_cachalot.html) or [pygmy](https://docs.amazee.io/local_docker_development/pygmy.html) everything is already setup and ready to go. You don't have to worry more.
 
+## Start manually
+
+       docker run -d -p 80:80 -p 443:443 --volume=/var/run/docker.sock:/tmp/docker.sock --name=amazeeio-haproxy amazeeio/haproxy
+
+By default this Image will listen to port 80 and 443 for http and https connections. It is not forced though to this, with defining another port this Image also works, example:
+
+       docker run -d -p 8080:80 -p 4443:443 --volume=/var/run/docker.sock:/tmp/docker.sock --name=amazeeio-haproxy amazeeio/haproxy
+
 ## How it works
 
 The container has [docker-gen](https://github.com/jwilder/docker-gen) installed, which listens to the Docker socket for changes of containers.
 
 Every container that has an environment variable `AMAZEEIO` set, docker-gen will generate from the template (haproxy.tmpl)[./haproxy.tmpl] and haproxy config and restart the haproxy.
 
-## Extended Usage
+## Use with non-amazeeio containers
 
 This container can not only be used for Containers started from amazee.io Docker Images, it can reverse proxy any kind of Containers. In order to do so, start your container with the following environment variables:
 
