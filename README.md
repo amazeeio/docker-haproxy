@@ -25,7 +25,7 @@ Every container that has an environment variable `AMAZEEIO` set, docker-gen will
 This container can not only be used for Containers started from amazee.io Docker Images, it can reverse proxy any kind of Containers. In order to do so, start your container with the following environment variables:
 
 - `AMAZEEIO` - Tells docker-gen that this container should be handled (value does not matter, just use `AMAZEEIO=AMAZEEIO`)
-- `AMAZEEIO_URL` - the URL for which connections should be forwarded to by haproxy (if not set, falls back to the Container name)
+- `AMAZEEIO_URL` - the URL for which connections should be forwarded to by haproxy (if not set, falls back to the Container name. Plus make sure that your DNS resolves the given URL to the IP of the Docker Host)
 - `AMAZEEIO_HTTP_PORT` - the port were the container listens for HTTP Connections, this port also needs to be exposed via the container (falls back to 80 if not set)
 - `AMAZEEIO_HTTPS_PORT` - the port were the container listens for HTTPS Connections, this port also needs to be exposed via the container (falls back to 443 if not set)
 
