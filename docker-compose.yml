@@ -7,4 +7,5 @@ services:
       - /var/run/docker.sock:/tmp/docker.sock
     ports:
       - 80:80
+      - 443:443
     network_mode: bridge
