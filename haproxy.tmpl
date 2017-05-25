@@ -1,11 +1,7 @@
 {{ define "upstream" }}
         {{ if .Address }}
-                {{/* If we got the containers from swarm and this container's port is published to host, use host IP:P$ */}}
-                {{ if and .Container.Node.ID .Address.HostPort }}
-                        # {{ .Container.Node.Name }}/{{ .Container.Name }}
-                        server {{ .Container.Node.Address.IP }}:{{ .Address.HostPort }} {{ .Container.Node.Address.IP }}:{{ .Address.HostPort }} check
-                {{/* If there is no swarm node or the port is not published on host, use container's IP:PORT */}}
-                {{ else if .Address.IP }}
+                {{/* If port is not published on host, use container's IP:PORT */}}
+                {{ if .Address.IP }}
                         # {{ .Container.Name }}
                         server {{ .Address.IP }}:{{ .Address.Port }} {{ .Address.IP }}:{{ .Address.Port }} check
                 {{ else }}
