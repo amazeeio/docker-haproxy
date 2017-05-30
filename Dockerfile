@@ -1,17 +1,15 @@
-FROM ubuntu:14.04
+FROM haproxy:1.7-alpine
 
-ENV DOCKER_GEN_VERSION 0.7.0
-RUN apt-get -y install software-properties-common
-RUN add-apt-repository ppa:vbernat/haproxy-1.6
-RUN apt-get update
-RUN apt-get -y install haproxy wget nano
+RUN apk update && apk --no-cache add bash
 
-RUN wget https://github.com/jwilder/docker-gen/releases/download/$DOCKER_GEN_VERSION/docker-gen-linux-amd64-$DOCKER_GEN_VERSION.tar.gz \
- && tar -C /usr/local/bin -xvzf docker-gen-linux-amd64-$DOCKER_GEN_VERSION.tar.gz \
- && rm /docker-gen-linux-amd64-$DOCKER_GEN_VERSION.tar.gz
+ENV DOCKER_GEN_VERSION 0.7.3
+
+ADD https://github.com/jwilder/docker-gen/releases/download/$DOCKER_GEN_VERSION/docker-gen-linux-amd64-$DOCKER_GEN_VERSION.tar.gz /tmp/docker-gen.tar.gz
+
+RUN tar -C /usr/local/bin -xvzf /tmp/docker-gen.tar.gz && \
+    chmod +x /usr/local/bin/docker-gen
 
 COPY . /app/
-
 WORKDIR /app/
 
 ENV DOCKER_HOST unix:///tmp/docker.sock
