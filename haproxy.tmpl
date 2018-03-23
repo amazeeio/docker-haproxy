@@ -11,19 +11,6 @@
         {{ end }}
 {{ end }}
 
-{{ define "https_upstream" }}
-        {{ if .Address }}
-                {{/* If port is not published on host, use container's IP:PORT */}}
-                {{ if .Address.IP }}
-                        # {{ .Container.Name }}
-                        server {{ .Address.IP }}:{{ .Address.Port }} {{ .Address.IP }}:{{ .Address.Port }} ssl verify none check
-                {{ else }}
-                        # {{ .Container.Name }}
-                        server {{ .Container.Name }}:{{ .Address.Port }} {{ .Container.Name }}:{{ .Address.Port }} ssl verify none check
-                {{ end }}
-        {{ end }}
-{{ end }}
-
 global
 	daemon
 	maxconn 1024
@@ -105,9 +92,9 @@ backend https_{{$host}}
 	stick store-response payload_lv(43,1) if serverhello
 
 	option tcp-check
-
+  
 	{{ $address := where $container.Addresses "Port" $https_port | first }}
-	{{ template "https_upstream" (dict "Container" $container "Address" $address) }}
+	{{ template "upstream" (dict "Container" $container "Address" $address) }}
 {{end}}
 
 {{range $key, $container := whereExist $ "Env.LAGOON_LOCALDEV_HTTP_PORT" }}
