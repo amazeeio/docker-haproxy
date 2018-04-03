@@ -36,8 +36,11 @@ frontend http
 {{/* We are only interested in containers that have the environment variable AMAZEEIO set */}}
 {{range $key, $container := whereExist $ "Env.AMAZEEIO" }}
 	{{/* Allow containers to set their hostname via the env variable AMAZEEIO_URL if not set, fall bback to the container name */}}
-	{{$host := coalesce $container.Env.AMAZEEIO_URL $container.Name }}
+	{{$hosts := coalesce $container.Env.AMAZEEIO_URL $container.Name }}
+	{{ range $host := split $hosts "," }}
+	{{ $host := trim $host }}
 	use_backend http_{{$host}} if { hdr_dom(host) -i {{$host}} }
+	{{end}}
 {{end}}
 {{/* We are only interested in containers that have the environment variable LAGOON_LOCALDEV_HTTP_PORT set */}}
 {{range $key, $container := whereExist $ "Env.LAGOON_LOCALDEV_HTTP_PORT" }}
@@ -53,15 +56,20 @@ frontend https
 	tcp-request inspect-delay 5s
 	tcp-request content accept if { req_ssl_hello_type 1 }
 {{range $key, $container := whereExist $ "Env.AMAZEEIO" }}
-        {{$host := coalesce $container.Env.AMAZEEIO_URL $container.Name }}
+	{{$hosts := coalesce $container.Env.AMAZEEIO_URL $container.Name }}
+	{{ range $host := split $hosts "," }}
+	{{ $host := trim $host }}
 	use_backend https_{{$host}} if { req_ssl_sni -i {{$host}} }
+	{{end}}
 {{end}}
 {{/* No support for Lagoon HTTPS */}}
 
 {{range $key, $container := whereExist $ "Env.AMAZEEIO" }}
-{{$host := coalesce $container.Env.AMAZEEIO_URL $container.Name }}
+{{$hosts := coalesce $container.Env.AMAZEEIO_URL $container.Name }}
 {{/* Allow containers to set their the port for HTTP connections via AMAZEEIO_HTTP_PORT env variable, fallback to Port 80 */}}
 {{$http_port := coalesce $container.Env.AMAZEEIO_HTTP_PORT "80" }}
+{{ range $host := split $hosts "," }}
+{{ $host := trim $host }}
 backend http_{{$host}}
 		mode http
 		{{ $address := where $container.Addresses "Port" $http_port | first }}
