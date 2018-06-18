@@ -2,11 +2,11 @@
   {{ if .Address }}
     {{/* If port is not published on host, use container's IP:PORT */}}
     {{ if .Address.IP }}
-      # {{ .Container.Name }}
-      server {{ .Address.IP }}:{{ .Address.Port }} {{ .Address.IP }}:{{ .Address.Port }} check
+  # {{ .Container.Name }}
+  server {{ .Address.IP }}:{{ .Address.Port }} {{ .Address.IP }}:{{ .Address.Port }} check
     {{ else }}
-        # {{ .Container.Name }}
-        server {{ .Container.Name }}:{{ .Address.Port }} {{ .Container.Name }}:{{ .Address.Port }} check
+  # {{ .Container.Name }}
+  server {{ .Container.Name }}:{{ .Address.Port }} {{ .Container.Name }}:{{ .Address.Port }} check
     {{ end }}
   {{ end }}
 {{ end }}
