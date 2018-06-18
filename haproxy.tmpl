@@ -47,60 +47,37 @@ frontend http
 {{end}}
 
 frontend https
-  mode tcp
-  bind *:443
+  mode http
+  bind *:443 ssl crt /app/server.pem
+  reqadd X-Forwarded-Proto:\ https
   option socket-stats
-  tcp-request inspect-delay 5s
-  tcp-request content accept if { req_ssl_hello_type 1 }
 {{range $key, $container := whereExist $ "Env.AMAZEEIO" }}
         {{$host := coalesce $container.Env.AMAZEEIO_URL $container.Name }}
-  use_backend https_{{$host}} if { req_ssl_sni -i {{$host}} }
+  use_backend http_{{$host}} if { hdr_dom(host) -i {{$host}} }
 {{end}}
-{{/* No support for Lagoon HTTPS */}}
+{{range $key, $container := whereExist $ "Env.LAGOON_LOCALDEV_HTTP_PORT" }}
+  {{/* Allow containers to set their hostname via the env variable LAGOON_ROUTE if not set, fall back to the container name and projectname. Also remove http:// and https:// */}}
+  {{$host := replace (replace (coalesce $container.Env.LAGOON_LOCALDEV_URL $container.Env.LAGOON_ROUTE  (printf "%s.docker.amazee.io" $container.Name)) "http://" "" 1) "https://" "" 1 }}
+  use_backend http_{{$host}} if { hdr_dom(host) -i {{$host}} }
+{{end}}
 
 {{range $key, $container := whereExist $ "Env.AMAZEEIO" }}
-{{$host := coalesce $container.Env.AMAZEEIO_URL $container.Name }}
-{{/* Allow containers to set their the port for HTTP connections via AMAZEEIO_HTTP_PORT env variable, fallback to Port 80 */}}
-{{$http_port := coalesce $container.Env.AMAZEEIO_HTTP_PORT "80" }}
+  {{$host := coalesce $container.Env.AMAZEEIO_URL $container.Name }}
+  {{/* Allow containers to set their the port for HTTP connections via AMAZEEIO_HTTP_PORT env variable, fallback to Port 80 */}}
+  {{$http_port := coalesce $container.Env.AMAZEEIO_HTTP_PORT "80" }}
 backend http_{{$host}}
   mode http
   {{ $address := where $container.Addresses "Port" $http_port | first }}
   {{ template "upstream" (dict "Container" $container "Address" $address) }}
 
-{{/* Allow containers to set their the port for HTTPS connections via AMAZEEIO_HTTPS_PORT env variable, fallback to Port 443 */}}
-{{$https_port := coalesce $container.Env.AMAZEEIO_HTTPS_PORT "443" }}
-backend https_{{$host}}
-  #balance leastconn
-  mode tcp
-
-  # maximum SSL session ID length is 32 bytes.
-  stick-table type binary len 32 size 30k expire 30m
-
-  acl clienthello req_ssl_hello_type 1
-  acl serverhello rep_ssl_hello_type 2
-
-  # use tcp content accepts to detects ssl client and server hello.
-  tcp-request inspect-delay 5s
-  tcp-request content accept if clienthello
-
-  # no timeout on response inspect delay by default.
-  tcp-response content accept if serverhello
-
-  stick on payload_lv(43,1) if clienthello
-
-  # Learn on response if server hello.
-  stick store-response payload_lv(43,1) if serverhello
-
-  option ssl-hello-chk
-
-  {{ $address := where $container.Addresses "Port" $https_port | first }}
-  {{ template "upstream" (dict "Container" $container "Address" $address) }}
+  {{/* Allow containers to set their the port for HTTPS connections via AMAZEEIO_HTTPS_PORT env variable, fallback to Port 443 */}}
+  {{$http_port := coalesce $container.Env.AMAZEEIO_HTTP_PORT "80" }}
 {{end}}
 
 {{range $key, $container := whereExist $ "Env.LAGOON_LOCALDEV_HTTP_PORT" }}
-{{$host := replace (replace (coalesce $container.Env.LAGOON_LOCALDEV_URL $container.Env.LAGOON_ROUTE  (printf "%s.docker.amazee.io" $container.Name)) "http://" "" 1) "https://" "" 1 }}
-{{/* Allow containers to set their the port for HTTP connections via LAGOON_LOCALDEV_HTTP_PORT env variable, fallback to Port 8080 */}}
-{{$http_port := coalesce $container.Env.LAGOON_LOCALDEV_HTTP_PORT "8080" }}
+  {{$host := replace (replace (coalesce $container.Env.LAGOON_LOCALDEV_URL $container.Env.LAGOON_ROUTE  (printf "%s.docker.amazee.io" $container.Name)) "http://" "" 1) "https://" "" 1 }}
+  {{/* Allow containers to set their the port for HTTP connections via LAGOON_LOCALDEV_HTTP_PORT env variable, fallback to Port 8080 */}}
+  {{$http_port := coalesce $container.Env.LAGOON_LOCALDEV_HTTP_PORT "8080" }}
 backend http_{{$host}}
   mode http
   {{ $address := where $container.Addresses "Port" $http_port | first }}
