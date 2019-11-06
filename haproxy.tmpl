@@ -51,6 +51,11 @@ frontend https
   bind *:443 ssl crt /app/server.pem
   reqadd X-Forwarded-Proto:\ https
   option socket-stats
+
+  stats enable
+  stats refresh 30s
+  stats show-node
+  stats uri  /stats
 {{range $key, $container := whereExist $ "Env.AMAZEEIO" }}
         {{$host := coalesce $container.Env.AMAZEEIO_URL $container.Name }}
   use_backend http_{{$host}} if { hdr_dom(host) -i {{$host}} }
