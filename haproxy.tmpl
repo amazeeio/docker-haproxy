@@ -49,7 +49,7 @@ frontend http
 frontend https
   mode http
   bind *:443 ssl crt /app/server.pem
-  reqadd X-Forwarded-Proto:\ https
+  http-request add-header X-Forwarded-Proto https
   option socket-stats
 {{range $key, $container := whereExist $ "Env.AMAZEEIO" }}
         {{$host := coalesce $container.Env.AMAZEEIO_URL $container.Name }}
