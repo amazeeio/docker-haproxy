@@ -1,11 +1,28 @@
 version: '3'
 services:
   haproxy:
-    build: .
+    build:
+      context: ./haproxy/
+      dockerfile: Dockerfile
     volumes:
-      - ./haproxy.tmpl:/app/haproxy.tmpl
+      - ./haproxy/haproxy.tmpl:/app/haproxy.tmpl
       - /var/run/docker.sock:/tmp/docker.sock
     ports:
       - 80:80
       - 443:443
+    network_mode: bridge
+  dnsmasq:
+    build:
+      context: ./dnsmasq
+      dockerfile: Dockerfile
+    ports:
+      - 53:53
+    network_mode: bridge
+  mailhog:
+    build:
+      context: ./mailhog
+      dockerfile: Dockerfile
+    ports:
+      - 1025:1025
+      - 8025:8025
     network_mode: bridge
