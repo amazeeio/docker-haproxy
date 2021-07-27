@@ -26,3 +26,7 @@ services:
       - 1025:1025
       - 8025:8025
     network_mode: bridge
+  ssh-agent:
+    build:
+      context: ./ssh-agent
+      dockerfile: Dockerfile
