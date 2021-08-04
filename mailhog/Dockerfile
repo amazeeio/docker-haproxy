@@ -1,5 +1,8 @@
 FROM golang:1.14-alpine3.13 as builder
 
+LABEL org.opencontainers.image.authors="tobybellwood" maintainer="tobybellwood"
+LABEL org.opencontainers.image.source="https://github.com/tobybellwood/docker-haproxy" repository="https://github.com/tobybellwood/docker-haproxy"
+
 RUN set -x \
   && buildDeps='git musl-dev gcc' \
   && apk add --update $buildDeps \

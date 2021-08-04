@@ -23,6 +23,12 @@ jobs:
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v1 
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
       - name: Build and push haproxy
         if: steps.docker-credentials.outputs.defined == 'true'
         id: docker_build_haproxy
@@ -31,7 +37,9 @@ jobs:
           context: ./haproxy
           platforms: linux/amd64,linux/arm64
           push: true
-          tags: tobybellwood/haproxy:multiarch
+          tags: |
+            tobybellwood/haproxy:multiarch
+            ghcr.io/tobybellwood/haproxy:multiarch
       - name: Build and push dnsmasq
         if: steps.docker-credentials.outputs.defined == 'true'
         id: docker_build_dnsmasq
@@ -40,7 +48,9 @@ jobs:
           context: ./dnsmasq
           platforms: linux/amd64,linux/arm64
           push: true
-          tags: tobybellwood/dnsmasq:multiarch
+          tags: |
+          tobybellwood/dnsmasq:multiarch
+          ghcr.io/tobybellwood/dnsmasq:multiarch
       - name: Build and push mailhog
         if: steps.docker-credentials.outputs.defined == 'true'
         id: docker_build_mailhog
@@ -49,7 +59,9 @@ jobs:
           context: ./mailhog
           platforms: linux/amd64,linux/arm64
           push: true
-          tags: tobybellwood/mailhog:multiarch
+          tags: |
+            tobybellwood/mailhog:multiarch
+            ghcr.io/tobybellwood/mailhog:multiarch
       - name: Build and push ssh-agent
         if: steps.docker-credentials.outputs.defined == 'true'
         id: docker_build_ssh-agent
@@ -58,7 +70,9 @@ jobs:
           context: ./ssh-agent
           platforms: linux/amd64,linux/arm64
           push: true
-          tags: tobybellwood/ssh-agent:multiarch
+          tags: |
+            tobybellwood/ssh-agent:multiarch
+            ghcr.io/tobybellwood/ssh-agent:multiarch
       - name: Image digest
         run: |
           echo ${{ steps.docker_build_haproxy.outputs.digest }}
