@@ -49,8 +49,8 @@ jobs:
           platforms: linux/amd64,linux/arm64
           push: true
           tags: |
-          tobybellwood/dnsmasq:multiarch
-          ghcr.io/tobybellwood/dnsmasq:multiarch
+            tobybellwood/dnsmasq:multiarch
+            ghcr.io/tobybellwood/dnsmasq:multiarch
       - name: Build and push mailhog
         if: steps.docker-credentials.outputs.defined == 'true'
         id: docker_build_mailhog
