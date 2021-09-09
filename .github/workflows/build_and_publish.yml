@@ -29,6 +29,13 @@ jobs:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Docker meta
+        id: meta_haproxy
+        uses: docker/metadata-action@v3
+        with:
+          images: |
+            ${{ github.repository_owner }}/haproxy
+            ghcr.io/${{ github.repository_owner }}/haproxy
       - name: Build and push haproxy
         if: steps.docker-credentials.outputs.defined == 'true'
         id: docker_build_haproxy
@@ -36,10 +43,16 @@ jobs:
         with:
           context: ./haproxy
           platforms: linux/amd64,linux/arm64
-          push: true
-          tags: |
-            tobybellwood/haproxy:multiarch
-            ghcr.io/tobybellwood/haproxy:multiarch
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta_haproxy.outputs.tags }}
+          labels: ${{ steps.meta_haproxy.outputs.labels }}
+      - name: Docker meta
+        id: meta_dnsmasq
+        uses: docker/metadata-action@v3
+        with:
+          images: |
+            ${{ github.repository_owner }}/dnsmasq
+            ghcr.io/${{ github.repository_owner }}/dnsmasq
       - name: Build and push dnsmasq
         if: steps.docker-credentials.outputs.defined == 'true'
         id: docker_build_dnsmasq
@@ -47,10 +60,16 @@ jobs:
         with:
           context: ./dnsmasq
           platforms: linux/amd64,linux/arm64
-          push: true
-          tags: |
-            tobybellwood/dnsmasq:multiarch
-            ghcr.io/tobybellwood/dnsmasq:multiarch
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta_dnsmasq.outputs.tags }}
+          labels: ${{ steps.meta_dnsmasq.outputs.labels }}
+      - name: Docker meta
+        id: meta_mailhog
+        uses: docker/metadata-action@v3
+        with:
+          images: |
+            ${{ github.repository_owner }}/mailhog
+            ghcr.io/${{ github.repository_owner }}/mailhog
       - name: Build and push mailhog
         if: steps.docker-credentials.outputs.defined == 'true'
         id: docker_build_mailhog
@@ -58,10 +77,16 @@ jobs:
         with:
           context: ./mailhog
           platforms: linux/amd64,linux/arm64
-          push: true
-          tags: |
-            tobybellwood/mailhog:multiarch
-            ghcr.io/tobybellwood/mailhog:multiarch
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta_mailhog.outputs.tags }}
+          labels: ${{ steps.meta_mailhog.outputs.labels }}
+      - name: Docker meta
+        id: meta_ssh-agent
+        uses: docker/metadata-action@v3
+        with:
+          images: |
+            ${{ github.repository_owner }}/ssh-agent
+            ghcr.io/${{ github.repository_owner }}/ssh-agent
       - name: Build and push ssh-agent
         if: steps.docker-credentials.outputs.defined == 'true'
         id: docker_build_ssh-agent
@@ -69,10 +94,9 @@ jobs:
         with:
           context: ./ssh-agent
           platforms: linux/amd64,linux/arm64
-          push: true
-          tags: |
-            tobybellwood/ssh-agent:multiarch
-            ghcr.io/tobybellwood/ssh-agent:multiarch
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta_ssh-agent.outputs.tags }}
+          labels: ${{ steps.meta_ssh-agent.outputs.labels }}
       - name: Image digest
         run: |
           echo ${{ steps.docker_build_haproxy.outputs.digest }}

@@ -1,7 +1,4 @@
-FROM haproxy:1.7-alpine
-
-LABEL org.opencontainers.image.authors="tobybellwood" maintainer="tobybellwood"
-LABEL org.opencontainers.image.source="https://github.com/tobybellwood/docker-haproxy" repository="https://github.com/tobybellwood/docker-haproxy"
+FROM haproxy:1.8-alpine3.14
 
 RUN apk update && apk --no-cache add bash
 
