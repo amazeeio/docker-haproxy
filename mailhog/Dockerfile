@@ -1,4 +1,4 @@
-FROM golang:1.14-alpine3.14 as builder
+FROM golang:1.14-alpine3.13 as builder
 
 RUN set -x \
   && buildDeps='git musl-dev gcc' \
