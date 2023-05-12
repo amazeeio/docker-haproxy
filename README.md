@@ -1,4 +1,6 @@
-# amazee.io haproxy
+# Archived - see https://github.com/pygmystack/haproxy for the replacement
+
+# amazee.io haproxy - ARCHIVED
 
 This Images is part of the [amazee.io local docker development environment](https://docs.amazee.io/local_docker_development/local_docker_development.html). It provides a haproxy that serves as an reverse proxy in front of multiple Containers. This allows us to access multiple containers via nice URLs without the need to publish or know the ports of the containers.
 
